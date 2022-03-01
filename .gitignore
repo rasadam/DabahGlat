@@ -7,7 +7,7 @@
 *.pm.tdy
 *.bs
 
-data\PricePromo20220301162551.csv
+data/PricePromo20220301162551.csv
 
 # Devel::Cover
 cover_db/
