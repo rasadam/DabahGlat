@@ -13,11 +13,11 @@ use Data::Dumper;
 use File::BOM qw( :all );
 use POSIX;
 
-use constant MIVTZA_DETAILS => 19;
-use constant MIVZA_MN => 8;
-use constant SCM_KNE => 15;
-use constant CMT_KNE => 14;
-use constant PrtSwShakil => 9;
+use constant PROMOTYPE => 29;
+use constant MINQTY => 20;
+# use constant SCM_KNE => 15;
+# use constant CMT_KNE => 14;
+# use constant PrtSwShakil => 9;
 
 my $g_fileName;
 
@@ -67,16 +67,8 @@ sub ProcessLines {
     $line =~ s/\n//;
     $line =~ s/\r//;
     my @lineData = split( ",", $line );
-    if ( $lineData[MIVTZA_DETAILS] eq "GENERIC-DISCOUNT" && $lineData[PrtSwShakil] eq "1" ) {
-      my $amount = GetAmount( $lineData[MIVZA_MN] );
-      if( $amount != 1 ){
-        my $price = 0;
-        ( $amount, $price ) = GetPrice( $lineData[MIVZA_MN] );
-        $lineData[MIVTZA_DETAILS] = "YFOR";
-        $lineData[CMT_KNE] = $amount;
-        # $lineData[SCM_KNE] = ceil( $lineData[SCM_KNE] * $amount );
-        $lineData[SCM_KNE] = $price; # GetPrice( $lineData[MIVZA_MN] );
-      }
+    if ( $lineData[PROMOTYPE] eq "4" && $lineData[MINQTY] < 1 ) {
+      $lineData[MINQTY] = "1";
       $line = join( ",", @lineData );
     }
     push( @processedLines, $line );
