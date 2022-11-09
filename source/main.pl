@@ -15,6 +15,9 @@ use POSIX;
 
 use constant PROMOTYPE => 29;
 use constant MINQTY => 20;
+use constant ISWEIGHT => 2;
+use constant DISCOUNTEDPRICE => 25;
+use constant DISCOUNTEDPRICEPERUNIT => 26;
 # use constant SCM_KNE => 15;
 # use constant CMT_KNE => 14;
 # use constant PrtSwShakil => 9;
@@ -67,13 +70,52 @@ sub ProcessLines {
     $line =~ s/\n//;
     $line =~ s/\r//;
     my @lineData = split( ",", $line );
-    if ( $lineData[PROMOTYPE] eq "4" && $lineData[MINQTY] < 1 ) {
+    my $createNewLine = 0;
+    if ( $lineData[PROMOTYPE] && $lineData[PROMOTYPE] eq "4" && $lineData[MINQTY] < 1 ) {
       $lineData[MINQTY] = "1";
+      $createNewLine = 1;
+    }
+    if ( $lineData[DISCOUNTEDPRICE] && $lineData[ISWEIGHT] == 1 ) {
+      $lineData[DISCOUNTEDPRICEPERUNIT] = RoundPrice(  $lineData[DISCOUNTEDPRICEPERUNIT] );
+      $lineData[DISCOUNTEDPRICE] = RoundPrice(  $lineData[DISCOUNTEDPRICE] );
+      $createNewLine = 1;
+    }
+
+    if ( $createNewLine == 1) {
       $line = join( ",", @lineData );
     }
+
     push( @processedLines, $line );
   }
   return @processedLines;
+}
+
+sub RoundPrice {
+  my $price = shift @_;
+  my ( $shekel, $agorot ) = split( /\./, $price );
+  if ( !defined $agorot ) {
+    $price = $shekel . ".00";
+    return $price;
+  }
+  if ( length($agorot) == 1 ) {
+    $agorot .= "0";
+  }
+
+  my $lastDig = $agorot % 10;
+  if ( $lastDig != 0 ) {
+    my $diff = 10 - $lastDig;
+    $agorot += $diff;
+  }
+  if ( $agorot >= 100 ) {
+    $agorot -= 100;
+    ++$shekel;
+  }
+  if ( $agorot == 0 ) {
+    $agorot = "00";
+  }
+
+  $price = "$shekel.$agorot";
+  return $price;
 }
 
 sub GetPrice {
